@@ -1,0 +1,21 @@
+# Core language + agents
+groq
+langchain
+
+# Mock data generator
+faker
+
+# API & orchestration (for MCP / REST if needed)
+fastapi
+uvicorn
+
+# Telephony (optional - only if you try live calls with Twilio)
+twilio
+
+# Audio handling (for STT/TTS testing)
+pydub
+soundfile
+speechrecognition
+
+# Utils
+python-dotenv    # for managing API keys
