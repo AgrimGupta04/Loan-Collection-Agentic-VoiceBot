@@ -1,5 +1,6 @@
 from database import Database
 from outcome_agent import Outcome_agent
+from twilio.rest import Client
 from groq import Groq
 import speech_recognition as sr
 
@@ -13,8 +14,17 @@ class CallerAgent:
         self.api_key = api_key or os.getenv('GROQ_API_KEY')
         self.client = Groq(api_key=self.api_key) if self.use_groq else None
         self.recognizer = sr.Recognizer()
+
+        ## Twilio integration can be added here for real calls
+        self.twilio_sid = os.getenv("TWILIO_SID")
+        self.twilio_auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+        self.twilio_number = os.getenv("TWILIO_PHONE_NUMBER")
+        self.twilio_client = Client(self.twilio_sid, self.twilio_auth_token)
     
+
     def transcribe_audio(self, audio_file: str) -> str:
+        """Using Google STT to transcribe audio file to text."""
+
         try:
             with sr.AudioFile(audio_file) as source:
                 audio_data = self.recognizer.record(source)
@@ -24,10 +34,11 @@ class CallerAgent:
             return "[Unintelligible audio]"
         except sr.RequestError as e:
             return f"[Google API error: {e}]"
-        
+
+
     def synthesize_speech(self, text: str, output_file: str = "response.wav"):
         """
-        Convert text to speech using Groq TTS
+        Convert text to speech using Groq TTS.
         """
         
         if not self.use_groq or not self.client:
@@ -48,6 +59,21 @@ class CallerAgent:
             return output_file
         except Exception as e:
             print("Groq TTS error:", e)
+            return None
+        
+
+    def make_call(self, to_number: str, message: str):
+        """Make a call using Twilio and response with the generated response."""
+        try:
+            call = self.twilio_client.calls.create(
+                to=to_number,
+                from_=self.twilio_number,
+                twiml=f'<Response><Say>{message}</Say></Response>'
+            )
+            print(f"Call initiated with SID: {call.sid}")
+            return call.sid
+        except Exception as e:
+            print("Twilio call error:", e)
             return None
         
     def simulate_conversation(self, audio_input: str):
