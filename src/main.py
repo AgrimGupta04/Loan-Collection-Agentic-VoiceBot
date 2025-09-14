@@ -4,12 +4,15 @@ from caller_agent import CallerAgent
 
 from pyngrok import ngrok
 from pyngrok import conf
+import os
+from dotenv import load_dotenv
 
-# Configure pyngrok to use the manually installed ngrok binary
-ngrok_path = "C:/ngrok/ngrok.exe" # Use forward slashes or double backslashes
+load_dotenv()
+
+ngrok_path = "C:/ngrok/ngrok.exe" 
 conf.get_default().ngrok_path = ngrok_path
 
-ngrok.set_auth_token("YOUR_NGROK_AUTH_TOKEN")
+ngrok.set_auth_token(os.getenv("YOUR_NGROK_AUTH_TOKEN"))
 
 public_url = ngrok.connect(8000)
 print("Public URL:", public_url)
@@ -52,14 +55,14 @@ def run_twilio_call():
 
     print(f"Calling {name} at {phone} for loan amount as {loan_amount} due on {due_date}.") 
 
-    test_number = "+918400601441"
+    # test_number = "+90124xxxxx"  ## Use this to test on your own number
 
     caller.make_call(
-        to_number=test_number,
+        to_number=phone,
         message=f"Hello {name}, this is a reminder for your loan payment of amount {loan_amount} due on {due_date}. Please pay as soon as possible. Thank you!"
     )
 
 if __name__ == "__main__":
 
-    # run_pipeline()
-    run_twilio_call()
+    # run_pipeline()    ## Test the whole pipeline with fake audio input
+    run_twilio_call()   ## Make a real call using Twilio service
