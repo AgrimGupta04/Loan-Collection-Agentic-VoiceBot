@@ -17,13 +17,23 @@ class Database:
                 name VARCHAR,
                 phone INT,
                 due_date DATE,
-                loan_amount VARCHAR,
+                loan_amount REAL,
                 call_status VARCHAR DEFAULT 'Pending',
                 notes VARCHAR
                 )
             """
         self.con.execute(query)
         self.con.commit()
+
+        # cur = self.con.execute("SELECT COUNT(*) FROM customers")
+        # count = cur.fetchone()[0]
+
+        # if count == 0:
+        #     self.con.execute(
+        #         "INSERT INTO customers (name, phone, due_date, loan_amount, call_status, notes) VALUES (?, ?, ?, ?, ?, ?)",
+        #         ("John", 9041000000, "2023-10-10", 5000, "Pending", "") ## Dummy entry
+        #     )
+        #     self.con.commit()
 
     def seed_data(self, n):
         fake = Faker()
