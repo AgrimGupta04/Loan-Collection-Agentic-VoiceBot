@@ -8,6 +8,8 @@ faker
 # API & orchestration (for MCP / REST if needed)
 fastapi
 uvicorn
+requests
+pyngrok
 
 # Telephony (optional - only if you try live calls with Twilio)
 twilio
