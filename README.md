@@ -117,7 +117,7 @@ python main.py
 - **FastAPI**
 - **SQLite**
 - **Twilio API**
-- **Groq API (TTS + LLM)**
+- **Groq API (TTS + STT + LLM)**
 - **Google SpeechRecognition**
 - **Ngrok**
 
