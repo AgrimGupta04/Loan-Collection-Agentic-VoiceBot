@@ -9,6 +9,9 @@ class Database:
         self.con = sqlite3.connect(db_file, check_same_thread=False)
         self.create_table()
 
+        if not self.fetch_due_customers():
+            self.seed_data(n=5)
+
     def create_table(self):
         ## Creating the table if not created 
         query = """
