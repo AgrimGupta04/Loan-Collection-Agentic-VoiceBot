@@ -1,68 +1,25 @@
-from database import Database 
+from database import Database
 from outcome_agent import Outcome_agent
 from caller_agent import CallerAgent
 
-from pyngrok import ngrok
-from pyngrok import conf
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-ngrok_path = "C:/ngrok/ngrok.exe" 
-conf.get_default().ngrok_path = ngrok_path
-
-ngrok.set_auth_token(os.getenv("YOUR_NGROK_AUTH_TOKEN"))
-
-public_url = ngrok.connect(8000)
-print("Public URL:", public_url)
-
 def run_pipeline():
     db = Database()
-    caller = CallerAgent(use_groq = True)
-    agent = Outcome_agent(use_groq = False)
+    caller = CallerAgent(use_groq=True)
+    agent = Outcome_agent(use_groq=False)
 
     customers = db.fetch_due_customers()
-
     if not customers:
-        print("No pending Customers found!")
+        print("No pending customers found.")
         return
-    
-    for customer in customers:
-        c_id, name, phone,  due_date, loan_amount, call_status, notes = customer
-        print(f"\nProcessint Time {name} (ID = {c_id}) with loan amount as {loan_amount} due on {due_date}.")
 
-        test_transcript = caller.transcribe_audio("user_says_he_will_pay.wav")
+    for c_id, name, phone, due_date, loan_amount, call_status, notes in customers:
+        print(f"\n[Pipeline] Processing {name}, due {due_date}, amount {loan_amount}")
 
-        outcome = agent.process_customer(test_transcript, c_id)
+        transcript = caller.transcribe_audio("user_says_he_will_pay.wav")
+        outcome = agent.process_customer(transcript, c_id)
         print("Outcome:", outcome)
 
         caller.synthesize_speech(f"Hello {name}, we have noted your response as: {outcome['status']}")
 
-def run_twilio_call():
-    """
-    This will make a real phone call using the Twilios ervice.
-    """
-    db = Database()
-    caller = CallerAgent(use_groq = True)
-
-    customers =  db.fetch_due_customers()
-    if not customers:
-        print("No pending Customers found!")
-        return
-    
-    c_id, name, phone, due_date, loan_amount, call_status, notes = customers[0]
-
-    print(f"Calling {name} at {phone} for loan amount as {loan_amount} due on {due_date}.") 
-
-    # test_number = "+90124xxxxx"  ## Use this to test on your own number
-
-    caller.make_call(
-        to_number=phone,
-        message=f"Hello {name}, this is a reminder for your loan payment of amount {loan_amount} due on {due_date}. Please pay as soon as possible. Thank you!"
-    )
-
 if __name__ == "__main__":
-
-    # run_pipeline()    ## Test the whole pipeline with fake audio input
-    run_twilio_call()   ## Make a real call using Twilio service
+    run_pipeline()
