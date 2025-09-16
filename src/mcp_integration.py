@@ -1,5 +1,5 @@
 import requests
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, Query
 from fastapi.responses import Response
 from database import Database
 from caller_agent import CallerAgent
@@ -80,3 +80,25 @@ def twilio_recording(recordingURL : str = Form(...), CallSid: str = Form(...), F
     """
     return Response(content=twiml, media_type="application/xml")
     
+
+@app.post('/make_call')
+def make_call(customer_id: int = Query(...)):
+    """
+    Trigger a Twilio call to a customer.
+    """
+    customers = db.fetch_due_customers()
+    customer = next((c for c in customers if c[0] == customer_id), None)
+
+    if not customer:
+        return {"error": f"No pending customer with ID {customer_id}"}
+
+    c_id, name, phone, due_date, loan_amount, call_status, notes = customer
+
+    message = f"Hello {name}, this is a reminder for your loan payment of {loan_amount} due on {due_date}. Please pay at your earliest convenience."
+
+    call_sid = caller.make_call(to_number=str(phone), message=message)
+
+    if call_sid:
+        return {"success": True, "call_sid": call_sid, "customer_id": c_id, "phone": phone}
+    else:
+        return {"success": False, "error": "Twilio call failed"}
