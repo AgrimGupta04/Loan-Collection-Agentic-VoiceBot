@@ -10,6 +10,7 @@ fastapi
 uvicorn
 requests
 pyngrok
+python-multipart
 
 # Telephony (optional - only if you try live calls with Twilio)
 twilio
@@ -21,3 +22,6 @@ speechrecognition
 
 # Utils
 python-dotenv    # for managing API keys
+
+# Frontend 
+streamlit
