@@ -1,114 +1,125 @@
-# Loan Reminder Voice Bot 
+# Loan Collection Agentic VoiceBot
 
-## Overview
-This project is an **AI-powered voice bot** that reminds customers about their **Loan Payments** via automated calls.  
-It integrates:
-- **Google Speech-to-Text (STT)** → transcribes customer responses.  
-- **Groq Text-to-Speech (TTS)** → generates natural speech responses.  
-- **Twilio** → handles phone call automation.  
-- **SQLite** → stores customer data and call outcomes.  
-- **FastAPI + Ngrok** → exposes endpoints for Twilio to interact with.  
-
-The bot calls customers, plays reminders, records responses, classifies them (e.g., *SUCCESSFUL, NEED FOLLOW-UP, FAILED*), and logs outcomes in the database.
+An AI powered **VoiceBot** for automating loan repayment reminders.  
+The system integrates **Groq (TTS + LLM)**, **Google STT**, **Twilio** (for phone calls), and **FastAPI** (for backend API).  
+Built for hackathons to demonstrate an **agentic AI voice assistant** for loan collection workflows.
 
 ---
 
 ## Features
-- Convert speech ↔ text (Google STT + Groq TTS).
-- Automated customer calls with Twilio.
-- SQLite database for customer records.
-- Outcome classification using keyword-based rules or Groq LLM.
-- FastAPI + Ngrok integration for Twilio webhooks.
+- **Database (SQLite)** with customer info (name, phone, due date, loan amount, status).
+- **Automatic call reminders** using **Twilio**.
+- **Speech-to-Text (STT)** transcription of customer responses.
+- **LLM classification** of customer intent (Successful, Needs Follow up, Failed).
+- **Text-to-Speech (TTS)** responses generated via **Groq TTS**.
+- **FastAPI backend** for Twilio webhooks + customer management.
+- **Streamlit frontend (optional)** for hackathon demo dashboards.
 
 ---
 
-## Folder Structure
+## Project Structure
 ```
-src/
-│── database.py        # Handles SQLite database
-│── caller_agent.py    # Handles STT + TTS + Twilio call logic
-│── outcome_agent.py   # Classifies customer responses
-│── mcp_integration.py # FastAPI server for Twilio webhook integration
-│── main.py            # Orchestration script for testing pipeline
-│── requirements.txt   # Dependencies
-│── .env               # API keys and credentials
+.
+├── app.py                # Main entrypoint (run pipeline, Twilio, or FastAPI)
+├── database.py           # SQLite database setup + seeding
+├── caller_agent.py       # Handles Twilio + Groq TTS + STT
+├── outcome_agent.py      # Classifies customer responses
+├── mcp_integration.py    # FastAPI backend (Twilio + DB APIs)
+├── requirements.txt      # Dependencies
+├── main.py               # For local Testing
+├── .env                  # Secrets (Twilio, Groq, Ngrok)
+└── README.md             # Project documentation
 ```
 
 ---
 
-## Installation
+## Setup Instructions
 
-### 1. Clone the repo
+### 1️. Clone Repo & Create Environment
 ```bash
-git clone https://github.com/yourusername/loan-reminder-bot.git
-cd loan-reminder-bot/src
-```
-
-### 2. Create a virtual environment
-```bash
+git clone https://github.com/AgrimGupta04/Loan-Collection-Agentic-VoiceBot.git
+cd Loan-Collection-Agentic-VoiceBot
 python -m venv voice-bot-env
-source voice-bot-env/bin/activate   # On Linux/Mac
-voice-bot-env\Scripts\activate   # On Windows
+voice-bot-env\Scripts\activate   # (Windows)
+# OR
+source voice-bot-env/bin/activate # (Mac/Linux)
 ```
 
-### 3. Install dependencies
+### 2️. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### 3️. Configure Environment Variables
+Create a `.env` file in the project root:
 
-## Environment Variables
-Create a **.env** file inside `src/` and add:
-
-```ini
-# Groq API
-GROQ_API_KEY=your_groq_api_key
-
-# Twilio
-TWILIO_SID=your_twilio_account_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=your_twilio_registered_number
-
-# Ngrok
-NGROK_AUTH_TOKEN=your_ngrok_auth_token
 ```
+GROQ_API_KEY=your_groq_api_key
+TWILIO_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_verified_number
+NGROK_AUTH_TOKEN=your_ngrok_token
+```
+
+**Important:**  
+- Twilio phone number must be purchased/verified on your Twilio account.  
+- Ngrok auth token from [dashboard](https://dashboard.ngrok.com/get-started/your-authtoken).  
 
 ---
 
 ## Running the Project
 
-### 1. Initialize database
-```bash
-python database.py
-```
-This will seed customers into the database.
+### Option 1: Local Test (Fake Pipeline)
+Simulates a call with a local audio file (`user_says_he_will_pay.wav`).
 
-### 2. Run FastAPI server
 ```bash
-uvicorn mcp_integration:app --reload --port 8000
+python app.py --mode pipeline
 ```
-
-### 3. Start Ngrok tunnel
-```bash
-ngrok http 8000
-```
-Copy the generated public URL and set it in Twilio **Voice Webhook URL**.
-
-### 4. Run main script
-```bash
-python main.py
-```
-- `run_pipeline()` → simulates flow using local audio.  
-- `run_twilio_call()` → triggers an actual call using Twilio.
 
 ---
 
-## Demo Plan
-1. Run the FastAPI server + Ngrok.  
-2. Configure Twilio webhook with Ngrok public URL.  
-3. Use `main.py` to make a test call.  
-4. Customer replies → Twilio records response → Google STT transcribes → Groq classifies → Database updated.  
+### Option 2: Make a Real Twilio Call
+Fetches first customer from DB and places a call.
+
+```bash
+python app.py --mode call
+```
+
+---
+
+### Option 3: Run Backend (FastAPI)
+Runs FastAPI backend for Twilio callbacks + frontend.
+
+```bash
+uvicorn app:app --reload --port 8000
+```
+
+Expose API to Twilio with ngrok:
+```bash
+ngrok http 8000
+```
+
+Copy the **public URL** and update it in your Twilio **Webhook settings**.
+
+---
+
+## Twilio Integration
+- **/twilio-voice** → Twilio speaks reminder + records response.  
+- **/twilio-recording** → Fetches recording → Transcribes → Classifies → Logs to DB.  
+
+---
+
+## Streamlit Frontend (Optional)
+For hackathon demos, add a simple Streamlit app:
+```bash
+streamlit run app.py
+```
+
+This dashboard can:
+- View pending customers
+- Trigger calls manually
+- Display outcomes
+- Hear back the generated TTS audio response (`response.wav`)
 
 ---
 
@@ -119,17 +130,36 @@ python main.py
 - **Twilio API**
 - **Groq API (TTS + STT + LLM)**
 - **Google SpeechRecognition**
+- **Streamlit**
 - **Ngrok**
 
 ---
 
+## Current Limitations
+- Not real time **streaming** conversation (batch STT → classify → TTS).  
+- Needs paid Twilio + verified caller ID.  
+- Uses SQLite (demo only, can be extended to Postgres/MySQL).  
+
+---
+
 ## Future Improvements
--  Real-time streaming conversation (instead of one-shot record/transcribe).  
+-  Real time streaming conversation (instead of one shot record/transcribe).  
 -  Analytics dashboard for customer responses.  
 -  Multilingual support.  
 -  Deploy to cloud (AWS/GCP/Azure).  
 
 ---
 
+## Hackathon Value
+This project shows:
+- **Agentic AI workflow**
+- **Integration of LLMs with real-world APIs**
+- **Voice-based automation for fintech use cases**
+
+Perfect as a **demo-ready prototype** 
+
+---
+
 ## Author
-Built by Agrim Gupta
+Agrim Gupta  
+Repo: [Loan-Collection-Agentic-VoiceBot](https://github.com/AgrimGupta04/Loan-Collection-Agentic-VoiceBot)
