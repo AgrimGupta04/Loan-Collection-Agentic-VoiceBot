@@ -8,4 +8,3 @@ healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 
 [variables]
-PORT = "8000"
