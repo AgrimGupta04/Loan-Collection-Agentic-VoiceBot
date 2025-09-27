@@ -11,6 +11,7 @@ uvicorn
 requests
 pyngrok
 python-multipart
+gunicorn
 
 # Telephony (optional - only if you try live calls with Twilio)
 twilio
@@ -25,3 +26,6 @@ python-dotenv    # for managing API keys
 
 # Frontend 
 streamlit
+
+# Additional for Railway deployment
+psutil

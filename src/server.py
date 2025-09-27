@@ -6,6 +6,8 @@ from urllib.parse import parse_qs
 import cgi
 from pathlib import Path
 
+PORT = int(os.environ.get("PORT", 8501))
+
 from database import Database
 try:
     from dotenv import load_dotenv
