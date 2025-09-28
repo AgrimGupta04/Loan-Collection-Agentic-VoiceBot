@@ -204,7 +204,7 @@ def query_pending():
         print(f"Pending query error: {e}")
         return []
 
-def render_table(rows):
+def render_table(rows, show_notes = True):
     if not rows:
         return """
         <div class="empty">
@@ -213,6 +213,12 @@ def render_table(rows):
           <div class="empty-sub">Everything looks up to date</div>
         </div>
         """
+    headers = """
+      <th>ID</th><th>Name</th><th>Phone</th><th>Due Date</th><th>Loan</th><th>Status</th>
+    """
+    if show_notes:
+        headers += "<th>Notes</th>"
+
     body = "".join(
         f"""
         <tr>
@@ -222,7 +228,7 @@ def render_table(rows):
           <td>{r['due_date']}</td>
           <td>₹{r['loan_amount']}</td>
           <td><span class="badge status status-{r['call_status'].replace(' ', '')}">{r['call_status']}</span></td>
-          <td>{(r['notes'] or '')}</td>
+          {f"<td>{(r['notes'] or '')}</td>" if show_notes else ""}
         </tr>
         """
         for r in rows
@@ -230,9 +236,7 @@ def render_table(rows):
     return f"""
     <div class="table-wrap">
       <table class="data-table">
-        <thead><tr>
-          <th>ID</th><th>Name</th><th>Phone</th><th>Due Date</th><th>Loan</th><th>Status</th><th>Notes</th>
-        </tr></thead>
+        <thead><tr>{headers}</tr></thead>
         <tbody>{body}</tbody>
       </table>
     </div>
@@ -309,7 +313,7 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
 def render_home():
     pending = query_pending()
     make_call_options = render_customer_options(pending)
-    pending_table = render_table(pending)
+    pending_table = render_table(pending, show_notes=False)
     body = f"""
     <div class="hero">
       <p class="hero-title">Pending Customers</p>
@@ -351,7 +355,7 @@ def render_home():
 
 def render_all_page():
     all_rows = query_all()
-    all_table = render_table(all_rows)
+    all_table = render_table(all_rows, show_notes=True)
     body = f"""
     <div class="hero">
       <p class="hero-title">All Customers (Updated)</p>
@@ -509,13 +513,13 @@ class Handler(BaseHTTPRequestHandler):
                         sid = None
                     if sid:
                         note = (notes + "\n" if notes else "") + f"Twilio call initiated SID: {sid}"
-                        DB.log_call_outcome(customer_id, call_status or "Pending", note)
+                        DB.log_call_outcome(customer_id, "NEED FOLLOW UP", note)
                     else:
                         note = (notes + "\n" if notes else "") + "Call requested but Twilio call failed"
-                        DB.log_call_outcome(customer_id, call_status or "Pending", note)
+                        DB.log_call_outcome(customer_id, "NEED FOLLOW UP", note)
                 else:
                     note = (notes + "\n" if notes else "") + "Call requested (Twilio not configured in this environment)"
-                    DB.log_call_outcome(customer_id, call_status or "Pending", note)
+                    DB.log_call_outcome(customer_id, "NEED FOLLOW UP", note)
                 self.send_response(302)
                 self.send_header("Location", "/")
                 self.end_headers()
@@ -560,7 +564,7 @@ def test_port():
 
 if __name__ == "__main__":
     try:
-        print(f"🔧 Components Status:")
+        print(f"   Components Status:")
         print(f"   Database: {'✓' if DB_AVAILABLE else '✗'}")
         print(f"   CallerAgent: {'✓' if CALLER_AVAILABLE else '✗'}")  
         print(f"   OutcomeAgent: {'✓' if AGENT_AVAILABLE else '✗'}")
