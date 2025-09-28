@@ -1,165 +1,117 @@
 # Loan Collection Agentic VoiceBot
 
-An AI powered **VoiceBot** for automating loan repayment reminders.  
-The system integrates **Groq (TTS + LLM)**, **Google STT**, **Twilio** (for phone calls), and **FastAPI** (for backend API).  
-Built for hackathons to demonstrate an **agentic AI voice assistant** for loan collection workflows.
+##  Vision
+A next-gen **multi-agent, voice-driven debt collection system** that transforms the way financial institutions interact with customers.  
+Instead of robotic reminders, our AI VoiceBot leverages **multi-agent collaboration, real-time speech intelligence, and contextual understanding** to create **empathetic, scalable, and effective repayment nudges**.
+
+---
+
+## Challenge Fit (Hackathon Criteria)
+
+- **Multi-Agent Architecture**  
+  - Specialized agents: `CallerAgent` (outreach), `OutcomeAgent` (repayment intent tracking), and `MCPIntegration` (external tools).
+
+- **Real-Time Performance** 
+  - Powered by **Groq inference** for ultra-low-latency STT + TTS.  
+  - Integrated with **Twilio** for instant customer calls.
+
+- **MCP Integration** 
+  - Seamlessly connects with external systems via **FastAPI endpoints + Model Context Protocol (MCP)**.
+
+- **Multi-Modal Intelligence**
+  - Current: **Voice + Text** (STT + TTS).  
+  - Next: add **vision/OCR** for document-based reminders, and **sentiment analysis** for empathy-driven nudges.
+
+- **Genuine Use Case**  
+  - Loan repayment collections — a real financial industry problem, **not a contrived demo**.
+
+---
+
+## Architecture
+```mermaid
+flowchart TD
+    A[Borrower] -->|Voice Call| B[Caller Agent]
+    B -->|Loan Context| C[Outcome Agent]
+    B -->|Speech-to-Text| D[Groq STT]
+    D -->|Text| C
+    C -->|Repayment Intent| E[SQLite DB / Future: PostgreSQL]
+    C -->|Action| F[MCP Integration]
+    F -->|APIs| G[Banking Systems]
+```
 
 ---
 
 ## Features
-- **Database (SQLite)** with customer info (name, phone, due date, loan amount, status).
-- **Automatic call reminders** using **Twilio**.
-- **Speech-to-Text (STT)** transcription of customer responses.
-- **LLM classification** of customer intent (Successful, Needs Follow up, Failed).
-- **Text-to-Speech (TTS)** responses generated via **Groq TTS**.
-- **FastAPI backend** for Twilio webhooks + customer management.
-- **Streamlit frontend (optional)** for hackathon demo dashboards.
+- 📞 **Automated Calls** using Twilio  
+- 🗣️ **Speech-to-Text (STT)** with Groq for lightning-fast transcription  
+- 🔊 **Text-to-Speech (TTS)** for human-like voice reminders  
+- 🧠 **Multi-Agent Flow**: division of responsibility between agents  
+- ⚡ **Real-Time Performance** for smooth UX  
+- 📊 **Outcome Tracking** stored in DB  
+- 🌍 **Deployed on Railway** → accessible live demo  
 
 ---
 
-## Project Structure
-```
-.
-├── app.py                # Main entrypoint (run pipeline, Twilio, or FastAPI)
-├── database.py           # SQLite database setup + seeding
-├── caller_agent.py       # Handles Twilio + Groq TTS + STT
-├── outcome_agent.py      # Classifies customer responses
-├── mcp_integration.py    # FastAPI backend (Twilio + DB APIs)
-├── requirements.txt      # Dependencies
-├── main.py               # For local Testing
-├── .env                  # Secrets (Twilio, Groq, Ngrok)
-└── README.md             # Project documentation
-```
-
----
-
-## Setup Instructions
-
-### 1️. Clone Repo & Create Environment
-```bash
-git clone https://github.com/AgrimGupta04/Loan-Collection-Agentic-VoiceBot.git
-cd Loan-Collection-Agentic-VoiceBot
-python -m venv voice-bot-env
-voice-bot-env\Scripts\activate   # (Windows)
-# OR
-source voice-bot-env/bin/activate # (Mac/Linux)
-```
-
-### 2️. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 3️. Configure Environment Variables
-Create a `.env` file in the project root:
-
-```
-GROQ_API_KEY=your_groq_api_key
-TWILIO_SID=your_twilio_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=your_twilio_verified_number
-NGROK_AUTH_TOKEN=your_ngrok_token
-```
-
-**Important:**  
-- Twilio phone number must be purchased/verified on your Twilio account.  
-- Ngrok auth token from [dashboard](https://dashboard.ngrok.com/get-started/your-authtoken).  
-
----
-
-## Running the Project
-
-### Option 1: Local Test (Fake Pipeline)
-Simulates a call with a local audio file (`user_says_he_will_pay.wav`).
-
-```bash
-python app.py --mode pipeline
-```
-
----
-
-### Option 2: Make a Real Twilio Call
-Fetches first customer from DB and places a call.
-
-```bash
-python app.py --mode call
-```
-
----
-
-### Option 3: Run Backend (FastAPI)
-Runs FastAPI backend for Twilio callbacks + frontend.
-
-```bash
-uvicorn app:app --reload --port 8000
-```
-
-Expose API to Twilio with ngrok:
-```bash
-ngrok http 8000
-```
-
-Copy the **public URL** and update it in your Twilio **Webhook settings**.
-
----
-
-## Twilio Integration
-- **/twilio-voice** → Twilio speaks reminder + records response.  
-- **/twilio-recording** → Fetches recording → Transcribes → Classifies → Logs to DB.  
-
----
-
-## Streamlit Frontend (Optional)
-For hackathon demos, add a simple Streamlit app:
-```bash
-streamlit run app.py
-```
-
-This dashboard can:
-- View pending customers
-- Trigger calls manually
-- Display outcomes
-- Hear back the generated TTS audio response (`response.wav`)
+## 🔗 Live Demo
+👉 [Click here to try the VoiceBot](loan-collection-agentic-voicebot-production.up.railway.app)  
 
 ---
 
 ## Tech Stack
-- **Python**
-- **FastAPI**
-- **SQLite**
-- **Twilio API**
-- **Groq API (TTS + STT + LLM)**
-- **Google SpeechRecognition**
-- **Streamlit**
-- **Ngrok**
+- **LangChain** (multi-agent orchestration)  
+- **Groq** (ultra-low-latency inference)  
+- **Twilio** (voice calling API)  
+- **FastAPI** (backend + MCP endpoints)  
+- **SQLite** (lightweight DB, future-ready for PostgreSQL/NoSQL)  
+- **Railway** (cloud deployment)  
 
 ---
 
-## Current Limitations
-- Not real time **streaming** conversation (batch STT → classify → TTS).  
-- Needs paid Twilio + verified caller ID.  
-- Uses SQLite (demo only, can be extended to Postgres/MySQL).  
+## Future Enhancements
+- Add **Sentiment & Emotion Analysis** for empathy-driven conversations  
+- Expand **Modalities** (OCR for documents, WhatsApp/SMS integration)  
+- Shift DB to **PostgreSQL** for scalability  
+- Introduce **Analytics Dashboard** for collection performance metrics  
+- Personalization engine → repayment nudges tailored to borrower profile  
 
 ---
 
-## Future Improvements
--  Real time streaming conversation (instead of one shot record/transcribe).  
--  Analytics dashboard for customer responses.  
--  Multilingual support.  
--  Deploy to cloud (AWS/GCP/Azure).  
+## Hackathon Edge
+This project is not “just another bot” — it’s a **scalable, real-world financial AI system** with:  
+- Multi-agent synergy  
+- Real-time low-latency interactions  
+- Enterprise integration readiness  
+- A genuine, high-impact use case  
 
 ---
 
-## Hackathon Value
-This project shows:
-- **Agentic AI workflow**
-- **Integration of LLMs with real-world APIs**
-- **Voice-based automation for fintech use cases**
+## ⚙️ Setup Instructions
 
-Perfect as a **demo-ready prototype** 
+```bash
+# Clone the repo
+git clone https://github.com/AgrimGupta04/Loan-Collection-Agentic-VoiceBot
+cd Loan-Collection-Agentic-VoiceBot
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run FastAPI backend
+uvicorn app:app --reload
+
+# For local testing 
+python main.py
+```
 
 ---
 
-## Author
-Agrim Gupta  
-Repo: [Loan-Collection-Agentic-VoiceBot](https://github.com/AgrimGupta04/Loan-Collection-Agentic-VoiceBot)
+## Contributors
+- **Agrim Gupta** – AI Engineer & Project Lead  
+
+---
+
+## 📜 License
+MIT License. Free to use and extend.
