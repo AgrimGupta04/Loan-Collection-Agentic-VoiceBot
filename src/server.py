@@ -7,7 +7,7 @@ import traceback
 from pathlib import Path
 
 # Railway port detection - CRITICAL: Railway provides PORT env variable
-PORT = int(os.environ.get("PORT", 8000))
+PORT = int(os.environ.get("PORT", 8080))
 print(f"🚀 Starting on PORT: {PORT}")
 
 # Initialize with minimal dependencies first
