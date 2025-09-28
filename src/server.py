@@ -6,6 +6,7 @@ from urllib.parse import parse_qs
 import cgi
 import traceback
 from pathlib import Path
+import database 
 
 # Railway port detection - CRITICAL: Railway provides PORT env variable
 PORT = int(os.environ.get("PORT", 8080))
@@ -45,15 +46,37 @@ try:
         def seed_if_empty(self):
             count = self.con.execute("SELECT COUNT(*) FROM customers").fetchone()[0]
             if count == 0:
-                customers = [
-                    ("John Doe", "+1234567890", "2024-01-15", 5000.0, "Pending", ""),
-                    ("Jane Smith", "+1234567891", "2024-01-20", 3500.0, "Pending", ""),
-                    ("Mike Johnson", "+1234567892", "2024-01-25", 7200.0, "Pending", "")
-                ]
-                self.con.executemany(
-                    "INSERT INTO customers (name, phone, due_date, loan_amount, call_status, notes) VALUES (?, ?, ?, ?, ?, ?)",
-                    customers
-                )
+                try:
+                    from faker import Faker
+                    import random
+                    fake = Faker()
+                    customers = []
+                    for _ in range(5):
+                        customers.append((
+                            fake.name(),
+                            fake.phone_number(),
+                            fake.date_between(start_date="today", end_date="+30d").isoformat(),
+                            round(random.uniform(1000, 10000), 2),
+                            "Pending",
+                            ""
+                        ))
+                    self.con.executemany(
+                        "INSERT INTO customers (name, phone, due_date, loan_amount, call_status, notes) VALUES (?, ?, ?, ?, ?, ?)",
+                        customers
+                    )
+                    print("✓ MinimalDatabase seeded with Faker")
+                except Exception:
+                    # fallback static data
+                    customers = [
+                        ("John Doe", "+1234567890", "2024-01-15", 5000.0, "Pending", ""),
+                        ("Jane Smith", "+1234567891", "2024-01-20", 3500.0, "Pending", ""),
+                        ("Mike Johnson", "+1234567892", "2024-01-25", 7200.0, "Pending", "")
+                    ]
+                    self.con.executemany(
+                        "INSERT INTO customers (name, phone, due_date, loan_amount, call_status, notes) VALUES (?, ?, ?, ?, ?, ?)",
+                        customers
+                    )
+                    print("✓ MinimalDatabase seeded with fallback static data")
                 self.con.commit()
         
         def fetch_due_customers(self):
@@ -158,6 +181,13 @@ def query_pending():
         return []
     try:
         rows = DB.fetch_due_customers()
+        if not rows:
+            try:
+                DB.seed_data(5)  # seed 5 fresh records
+                rows = DB.fetch_due_customers()
+                print("✓ Database reseeded with Faker due to empty state")
+            except Exception as e:
+                print(f"Auto-seed failed: {e}")
         return [
             {
                 "id": r[0],
@@ -278,9 +308,8 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
 
 def render_home():
     pending = query_pending()
-    all_rows = query_all()
+    make_call_options = render_customer_options(pending)
     pending_table = render_table(pending)
-    make_call_options = render_customer_options(pending or all_rows)
     body = f"""
     <div class="hero">
       <p class="hero-title">Pending Customers</p>
