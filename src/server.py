@@ -266,8 +266,6 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
       <nav class="nav">
         <a href="/">Pending</a>
         <a href="/all">All Customers</a>
-        <a href="/health">Health</a>
-        <a href="/api/customers">API</a>
       </nav>
     </div>
   </div>
