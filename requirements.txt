@@ -12,6 +12,7 @@ requests
 pyngrok
 python-multipart
 gunicorn
+aiofiles
 
 # Telephony (optional - only if you try live calls with Twilio)
 twilio
