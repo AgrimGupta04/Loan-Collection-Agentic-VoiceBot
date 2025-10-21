@@ -33,27 +33,28 @@ This project implements an intelligent AI voice agent designed to proactively co
 
 ## Project Structure 
 
+```
 your-project-folder/
-├── .env # Your secret keys (DO NOT COMMIT)
-├── .env.example # Example environment variables
-├── .gitignore # Files ignored by Git
-├── .railwayignore # Files ignored by Railway deployment
-├── requirements.txt # Project dependencies
-├── railway.toml # Railway deployment configuration
-├── Procfile # Alternative deployment config (e.g., for Heroku)
-├── server.py # Main FastAPI server (orchestrator)
-├── app.py # Optional Streamlit developer dashboard
+├── .env                      # Your secret keys (DO NOT COMMIT)
+├── .env.example              # Example environment variables
+├── .gitignore                # Files ignored by Git
+├── .railwayignore            # Files ignored by Railway deployment
+├── requirements.txt          # Project dependencies
+├── railway.toml              # Railway deployment configuration
+├── Procfile                  # Alternative deployment config (e.g., for Heroku)
+├── server.py                 # Main FastAPI server (orchestrator)
+├── app.py                    # Optional Streamlit developer dashboard
 └── src/
     ├── __init__.py
-    ├── action_agent.py # Agent responsible for executing actions (SMS)
-    ├── database.py # Database interaction logic
-    ├── dialogue_agent.py # Core agent logic (intent classification, response generation)
+    ├── action_agent.py       # Agent responsible for executing actions (SMS)
+    ├── database.py           # Database interaction logic
+    ├── dialogue_agent.py     # Core agent logic (intent classification, response generation)
     └── services/
         ├── __init__.py
-        ├── mcp_service.py # Twilio API interaction (SMS, Lookup)
-        ├── transcription_service.py # Audio transcription for file uploads
-        └── vapi_service.py # Vapi API interaction (starting calls)
-
+        ├── mcp_service.py        # Twilio API interaction (SMS, Lookup)
+        ├── transcription_service.py  # Audio transcription for file uploads
+        └── vapi_service.py       # Vapi API interaction (starting calls)
+```
 ---
 
 ## Setup & Installation 
