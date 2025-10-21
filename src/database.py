@@ -14,7 +14,7 @@ class Database:
             
             # Only seed if no data exists
             if not self.fetch_due_customers():
-                self.seed_simple_data()
+                self.seed_data()
                 print("✓ Database seeded with sample data")
                 
         except Exception as e:
@@ -88,14 +88,61 @@ class Database:
             print(f"Error in seed_data: {e}")
             self.seed_simple_data()
 
+    def fetch_all_customers(self) -> list[dict]: 
+        """ Returns info of all the customers in the database."""
+        try:
+            cur = self.con.execute("SELECT * FROM customers")
+            rows = cur.fetchall()
+        
+            # Get the column names from the cursor's description
+            keys = [description[0] for description in cur.description]
+            
+            # Create a list of dictionaries by zipping the keys with each row's values
+            return [dict(zip(keys, row)) for row in rows]
+        except Exception as e:
+            print(f"Some unknown Error {e}")
+            return []
+
     def fetch_due_customers(self):
         """Return info of all customers whose status is pending"""
         try:
             cur = self.con.execute("SELECT * FROM customers WHERE call_status = 'Pending' ")
-            return cur.fetchall()
+            rows = cur.fetchall()
+            keys = [description[0] for description in cur.description]
+            return [dict(zip(keys, row)) for row in rows]
         except Exception as e:
             print(f"Error fetching due customers: {e}")
             return []
+
+    def fetch_customer_by_id(self, customer_id) -> dict | None:
+        """To fetch a cusotmer from thier ID."""
+        try:
+            cur = self.con.execute("SELECT * FROM customers where id = ?", (customer_id))
+            row = cur.fetchone()
+            if row:
+                # Convert tuple to a dictionary
+                keys = [description[0] for description in cur.description]
+                return dict(zip(keys, row))
+            return None
+        except Exception as e:
+            print(f"Error fetching customer {customer_id}: {e}")
+            return None
+        
+    def get_customer_by_phone(self, phone_number: str) -> dict | None:
+        """
+        Fetches a single customer by their phone number and returns a dictionary.
+        """
+
+        try:
+            cur = self.con.execute("SELECT * FROM customers WHERE phone = ?", (phone_number,))
+            row = cur.fetchone()
+            if row:
+                keys = [description[0] for description in cur.description]
+                return dict(zip(keys, row))
+            return None
+        except Exception as e:
+            print(f"Error fetching customer by phone {phone_number}: {e}")
+            return None
 
     def log_call_outcome(self, customer_id, status, notes):
         """Update the status and notes for a particular customer"""
