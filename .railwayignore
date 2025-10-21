@@ -1,13 +1,20 @@
+# Python Caches and Compiled Files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Virtual Environments
 .Python
 env/
 venv/
 .venv/
+
+# Pip Temporary Files
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Testing and Coverage
 .tox/
 .coverage
 .coverage.*
@@ -15,15 +22,28 @@ pip-delete-this-directory.txt
 nosetests.xml
 coverage.xml
 *.cover
-*.log
-.git/
-.mypy_cache/
 .pytest_cache/
 .hypothesis/
+.mypy_cache/
+
+# Logs
+*.log
+
+# Git Directory
+.git/
+
+# Build Artifacts
 *.egg-info/
+
+# OS Specific / Editor Config
 .DS_Store
 .vscode/
+
+# Project Specific
 *.wav
 *.mp3
 customers.db
 demo_output/
+
+# Secrets (MUST IGNORE)
+.env
