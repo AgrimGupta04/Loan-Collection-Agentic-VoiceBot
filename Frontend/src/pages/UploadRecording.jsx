@@ -81,8 +81,7 @@ function UploadRecording() {
         const customerName = customers.find(c => c.id == selectedCustomer)?.name || 'Selected Customer';
 
         const formData = new FormData();
-        formData.append('recording', selectedFile);
-        formData.append('customerId', selectedCustomer);
+        formData.append('file', selectedFile, selectedFile.name); // Correct key is 'file'
 
         try {
             // --- Replaced simulation with actual API call ---
