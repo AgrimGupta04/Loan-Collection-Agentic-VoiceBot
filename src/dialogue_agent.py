@@ -52,7 +52,7 @@ class Dialogue_agent:
 
         try:
             response = self.client.chat.completions.create(
-                model = "llama3-8b-8192",
+                model = "meta-llama/llama-4-scout-17b-16e-instruct",
                 messages = [{"role": "user", "content": prompt}],
                 temperature = 0.0,
                 response_format = {"type": "json_object"}
@@ -62,7 +62,7 @@ class Dialogue_agent:
             return result
         except Exception as e:
             print(f"Error classifying intent: {e}")
-            return {"intent": "UNCLEAR"}
+            return {"intent": "HUMAN_INTERVENTION_REQUIRED"}
 
     def get_next_action(self, last_transcript: str, customer_data: dict, conversation_history: list = None) -> dict:
         """
@@ -81,7 +81,7 @@ class Dialogue_agent:
 
         # 1. Understand the user's intent
         classification = self._classify_intent(last_transcript, conversation_history)
-        intent = classification.get("intent", "UNCLEAR")
+        intent = classification.get("intent", "HUMAN_INTERVENTION_REQUIRED")
         
         # 2. Decide on an action based on the intent
         if intent == "AGREES_TO_PAY":
