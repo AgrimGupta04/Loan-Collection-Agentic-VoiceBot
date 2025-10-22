@@ -94,7 +94,7 @@ async def start_customer_call(customer_id: int):
     print(f"--- POST /start-call/{customer_id} Endpoint Hit ---")
     
     print(f"Fetching customer data for ID: {customer_id}")
-    customer = db.fetch_customer_by_id_customer_by_id(customer_id) # Corrected function name
+    customer = db.fetch_customer_by_id(customer_id) # Corrected function name
     
     if not customer:
         print(f"ERROR: Customer not found for ID: {customer_id}")
