@@ -117,7 +117,7 @@ class Database:
     def fetch_customer_by_id(self, customer_id) -> dict | None:
         """To fetch a cusotmer from thier ID."""
         try:
-            cur = self.con.execute("SELECT * FROM customers where id = ?", (customer_id))
+            cur = self.con.execute("SELECT * FROM customers where id = ?", (customer_id,))
             row = cur.fetchone()
             if row:
                 # Convert tuple to a dictionary
