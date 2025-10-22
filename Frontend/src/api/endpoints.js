@@ -1,6 +1,6 @@
 // Backend URL from environment variable
 const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
-const url = BACKEND_URL || 'http://localhost:5000';
+const url = BACKEND_URL;
 
 // All Customer form endpoint "all-customers"
  export const fetchAllCustomers = async(endpoint) => {
