@@ -20,7 +20,7 @@ function UpdatedCustomers() {
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
-                const data = await fetchUpdatedCustomers('updated-customers');
+                const data = await fetchUpdatedCustomers('all-customers');
                 setCustomers(data.customers || []);
             } catch (e) {
                 setError(e.message);
@@ -68,17 +68,19 @@ function UpdatedCustomers() {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {
                                     customers.map((customer) => (
-                                        <tr key={customer.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customer.name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${customer.loanAmount.toLocaleString()}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.message}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${customer.call_status === 'Pending' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'}`}>
-                                                    {customer.call_status}
-                                                </span>
-                                            </td>
-                                        </tr>
+                                        customer.status === 'SUCCESSFUL' && (
+                                            <tr key={customer.id}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customer.name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${customer.loanAmount}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.message}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${customer.status === 'Updated' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                        {customer.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        )
                                     ))
                                 }
                             </tbody>
