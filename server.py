@@ -8,12 +8,13 @@ from collections import defaultdict
 import time # Added for middleware timing
 import json # Added for pretty printing dicts
 
-# Import your custom modules
+# Import custom modules
 from src.database import Database
 from src.services import vapi_service
 from src.services import transcription_service
 from src.dialogue_agent import Dialogue_agent
 from src.action_agent import Action_agent
+from src.services.mcp_service import lookup_number
 
 # --- Initialization ---
 print("--- Initializing FastAPI App ---")
@@ -100,11 +101,24 @@ async def start_customer_call(customer_id: int):
         print(f"ERROR: Customer not found for ID: {customer_id}")
         raise HTTPException(status_code = 404, detail = "Customer not found.")
     
-    print(f"Customer found: {customer.get('name')}")
+    customer_phone = customer.get("phone")
+    customer_name = customer.get("name")
+    print(f"Customer found: {customer_name}, Phone: {customer_phone}")
+
+    print(f"Validating phone number {customer_phone} using twilio lookup.")
+    lookup_result = lookup_number(customer_phone)
+
+    if not lookup_result or not lookup_result.get("valid"):
+        print("ERROR: Phone number {customer_name} is invalid or lookup failed.")
+        raise HTTPException(status_code=400, detail=f"Phone number {customer_phone} is not valid.")
+    
+    if lookup_result.get("type") != 'mobile':
+        # If you want to block non-mobile:
+        raise HTTPException(status_code=400, detail=f"Phone number {customer_phone} is not a mobile number.")
+    
+    print(f"Phone number {customer_phone} validated successfully.")
     
     try:
-        customer_phone = customer.get("phone")
-        customer_name = customer.get("name")
 
         print(f"Calling vapi_service.start_phone_call for {customer_name} at {customer_phone}")
         call_data = vapi_service.start_phone_call(customer_phone = customer_phone)
