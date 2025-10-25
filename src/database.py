@@ -88,6 +88,36 @@ class Database:
             print(f"Error in seed_data: {e}")
             self.seed_simple_data()
 
+    def add_customer(self, name: str, phone: str, due_date: str, loan_amount: float) -> int | None:
+        """
+        Adds a new customer record to the database.
+
+        Args:
+            name (str): Customer's full name.
+            phone (str): Customer's phone number (E.164 format recommended).
+            due_date (str): Due date in 'YYYY-MM-DD' format.
+            loan_amount (float): The loan amount.
+
+        Returns:
+            int | None: The ID of the newly inserted customer, or None if insertion fails.
+        """
+        try:
+            cur = self.con.execute(
+                """
+                INSERT INTO customers (name, phone, due_date, loan_amount, call_status, notes)
+                VALUES (?, ?, ?, ?, 'Pending', '')
+                """,
+                (name, phone, due_date, loan_amount)
+            )
+            self.con.commit()
+            new_customer_id = cur.lastrowid
+            print(f"✓ Added customer: {name}, {phone}")
+            self.con.rollback()
+            return new_customer_id
+        except Exception as e:
+            print(f"Error adding customer {name}: {e}")
+            return None
+
     def fetch_all_customers(self) -> list[dict]: 
         """ Returns info of all the customers in the database."""
         try:

@@ -64,7 +64,7 @@ class Dialogue_agent:
             print(f"Error classifying intent: {e}")
             return {"intent": "HUMAN_INTERVENTION_REQUIRED"}
 
-    def get_next_action(self, last_transcript: str, customer_data: dict, conversation_history: list = None) -> dict:
+    def get_next_action(self, last_transcript: str, customer_data: dict, conversation_history: list = None, sentiment: str = "NEUTRAL") -> dict:
         """
         This is the main public method. It decides the next action for the orchestrator.
         
@@ -79,20 +79,24 @@ class Dialogue_agent:
         customer_name = customer_data.get("name", "there")
         loan_amount = customer_data.get("loan_amount", "your amount")
 
-        # 1. Understand the user's intent
+        ## Understand the user's intent
         classification = self._classify_intent(last_transcript, conversation_history)
         intent = classification.get("intent", "HUMAN_INTERVENTION_REQUIRED")
+
+        empathy_prefix = ""
+        if sentiment == "NEGATIVE":
+            empathy_prefix = "I understand this might be a tough time for you."
         
-        # 2. Decide on an action based on the intent
+        ## Decide on an action based on the intent
         if intent == "AGREES_TO_PAY":
-            # This is a multi-action response: reply and then send an SMS.
-            # The server will handle executing these in order.
+            ## This is a multi-action response: reply and then send an SMS.
+            ## The server will handle executing these in order.
             action_plan =  {
                 "action": "SEQUENCE",
                 "payload": [
                     {
                         "type": "REPLY",
-                        "text": f"Excellent. Thank you, {customer_name}. To make it easy, I am sending a secure payment link to your phone right now."
+                        "text": f"{empathy_prefix}Excellent. Thank you, {customer_name}. To make it easy, I am sending a secure payment link to your phone right now."
                     },
                     {
                         "type": "SEND_SMS",
@@ -109,18 +113,19 @@ class Dialogue_agent:
             action_plan = {
                 "action": "END_CALL",
                 "payload": {
-                    "text": f"I understand. We've made a note of your response. Thank you for your time, {customer_name}. Goodbye."
+                    "text": f"{empathy_prefix}. We've made a note of your response. Thank you for your time, {customer_name}. Goodbye."
                 }
             }
 
-        else: # Unclear or any other case
+        else: ## Unclear or any other case
             action_plan = {
                 "action": "REPLY",
                 "payload": {
-                    "text": "I'm sorry, I didn't quite catch that. Could you please repeat it?"
+                    "text": f"{empathy_prefix}I'm sorry, I didn't quite catch that. Could you please repeat it?"
                 }
             }
 
         action_plan["intent"] = intent
+        action_plan["detected_sentiment"] = sentiment
         return action_plan
         

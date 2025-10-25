@@ -14,9 +14,19 @@ from src.services import vapi_service
 from src.services import transcription_service
 from src.dialogue_agent import Dialogue_agent
 from src.action_agent import Action_agent
+from src.sentiment_agent import Sentiment_agent
 from src.services.mcp_service import lookup_number
 
-# --- Initialization ---
+from pydantic import BaseModel, Field
+from datetime import date
+
+class CustomerCreate(BaseModel):
+    name: str
+    phone: str
+    due_date: date # Pydantic automatically validates YYYY-MM-DD
+    loan_amount: float = Field(..., gt=0) # Ensure loan amount is positive
+
+##  Initialization 
 print("--- Initializing FastAPI App ---")
 app = FastAPI(title="Loan Collection AI Agent API")
 
@@ -26,11 +36,13 @@ print("Initializing Dialogue Agent...")
 dialogue_agent = Dialogue_agent()
 print("Initializing Action Agent...")
 action_agent = Action_agent()
+print("Initializing Sentiment Agent...")
+sentiment_agent = Sentiment_agent()
 
 conversation_histories = defaultdict(list)
 print("Initialization Complete.")
 
-# --- Middleware for Logging Requests ---
+##  Middleware for Logging Requests
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()
@@ -42,27 +54,27 @@ async def log_requests(request: Request, call_next):
     except Exception as e:
         process_time = time.time() - start_time
         print(f"<-- EXCEPTION during request {request.url.path} (took {process_time:.4f}s): {e}")
-        # Re-raise the exception so FastAPI handles it
+        ## Re-raise the exception so FastAPI handles it
         raise e
     return response
 
-# --- CORS Middleware ---
+##  CORS Middleware
 print("Adding CORS Middleware...")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development. Restrict in production.
+    allow_origins=["*"],  ## For development. Restrict in production.
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- Health Check Endpoint ---
+##  Health Check Endpoint 
 @app.get("/health")
 def health():
     print("--- Health Check Endpoint Hit ---")
     return {"status": "ok"}
 
-# --- Frontend Endpoints ---
+##  Frontend Endpoints
 
 @app.get("/all-customers")
 def get_all_customers():
@@ -92,11 +104,11 @@ def get_pending_customers():
 @app.post("/start-call/{customer_id}")
 async def start_customer_call(customer_id: int):
     """Endpoint for Frontend to trigger a call to a specific customer."""
-    print(f"--- POST /start-call/{customer_id} Endpoint Hit ---")
+    print(f"POST /start-call/{customer_id} Endpoint Hit ")
     
     print(f"Fetching customer data for ID: {customer_id}")
-    customer = db.fetch_customer_by_id(customer_id) # Corrected function name
-    
+    customer = db.fetch_customer_by_id(customer_id)  ## Corrected function name
+
     if not customer:
         print(f"ERROR: Customer not found for ID: {customer_id}")
         raise HTTPException(status_code = 404, detail = "Customer not found.")
@@ -109,11 +121,11 @@ async def start_customer_call(customer_id: int):
     lookup_result = lookup_number(customer_phone)
 
     if not lookup_result or not lookup_result.get("valid"):
-        print("ERROR: Phone number {customer_name} is invalid or lookup failed.")
+        print(f"ERROR: Phone number {customer_name} is invalid or lookup failed.")
         raise HTTPException(status_code=400, detail=f"Phone number {customer_phone} is not valid.")
     
     if lookup_result.get("type") != 'mobile':
-        # If you want to block non-mobile:
+        ## If you want to block non-mobile:
         raise HTTPException(status_code=400, detail=f"Phone number {customer_phone} is not a mobile number.")
     
     print(f"Phone number {customer_phone} validated successfully.")
@@ -163,13 +175,18 @@ async def handle_vapi_webhook(request_body: dict):
         customer_id_internal = customer_data.get('id')
         print(f"Call ID {call_id} - Found Customer ID: {customer_id_internal}")
 
-        # --- Memory Feature ---
+        ## Sentiment Feature 
+        print(f"Call ID {call_id} - Analyzing sentiment for transcript")
+        sentiment = sentiment_agent.analyze_sentiment(transcript)
+        print(f"Call ID {call_id} - Sentiment Analysis Result: {sentiment}")
+
+        ## Memory Feature
         conversation_histories[call_id].append(f"User: {transcript}")
         current_history = conversation_histories[call_id]
         print(f"Call ID {call_id} - Current History Length: {len(current_history)}")
 
-        print(f"Call ID {call_id} - Calling dialogue_agent.get_next_action...")
-        action_plan = dialogue_agent.get_next_action(transcript, customer_data, current_history)
+        print(f"Call ID {call_id} - Calling dialogue_agent.get_next_action.(with sentiment analysis)")
+        action_plan = dialogue_agent.get_next_action(transcript, customer_data, current_history, sentiment = sentiment)
         print(f"Call ID {call_id} - Received Action Plan:\n{json.dumps(action_plan, indent=2)}")
 
         response_to_vapi = {}
@@ -237,7 +254,7 @@ async def upload_recording(customer_id: int, file: UploadFile = File(...)):
     print(f"--- POST /upload-recording/{customer_id} Endpoint Hit ---")
     
     print(f"Fetching customer data for ID: {customer_id}")
-    customer_data = db.fetch_customer_by_id(customer_id) # Use correct function name
+    customer_data = db.fetch_customer_by_id(customer_id) ## Use correct function name
 
     if not customer_data:
         print(f"ERROR: Customer not found for ID: {customer_id}")
@@ -247,19 +264,19 @@ async def upload_recording(customer_id: int, file: UploadFile = File(...)):
     temp_path = None
 
     try:
-        # Create temp file path
+        ## Create temp file path
         with tempfile.NamedTemporaryFile(delete = False, suffix = ".wav") as tmp_file:
             temp_path = tmp_file.name
         print(f"Created temporary file: {temp_path}")
 
-        # Asynchronously write uploaded file content to temp file
+        ## Asynchronously write uploaded file content to temp file
         print(f"Writing uploaded file '{file.filename}' to temporary file...")
         async with aiofiles.open(temp_path, 'wb') as out_file:
             content = await file.read()
             await out_file.write(content)
         print(f"Finished writing to temporary file.")
 
-        # Transcribe audio
+        ## Transcribing audio
         print(f"Calling transcription_service for file: {temp_path}")
         transcript = transcription_service.transcribe_audio_file(temp_path)
         print(f"Transcription result: '{transcript}'")
@@ -267,7 +284,7 @@ async def upload_recording(customer_id: int, file: UploadFile = File(...)):
             print(f"ERROR: Transcription failed for customer {customer_id}")
             raise HTTPException(status_code = 500, detail = transcript)
         
-        # Get action plan from agent (no history for upload)
+        ## Get action plan from agent 
         print(f"Calling dialogue_agent.get_next_action for customer {customer_id}...")
         action_plan = dialogue_agent.get_next_action(transcript, customer_data)
         print(f"Received Action Plan:\n{json.dumps(action_plan, indent=2)}")
@@ -282,12 +299,12 @@ async def upload_recording(customer_id: int, file: UploadFile = File(...)):
         
         print(f"Determined Final DB Status: {final_db_status}")
 
-        # Log outcome to database
+        ## Log outcome to database
         print(f"Logging outcome to DB for customer {customer_id}...")
         db.log_call_outcome(customer_id, final_db_status, transcript)
         print(f"DB logging complete.")
 
-        # Execute actions if needed
+        ## Execute actions if needed
         actions_executed = []
         if action_plan.get("action") == "SEQUENCE":
             print(f"Processing SEQUENCE action for customer {customer_id}...")
@@ -314,12 +331,10 @@ async def upload_recording(customer_id: int, file: UploadFile = File(...)):
     
     except Exception as e:
         print(f"ERROR in /upload-recording for customer {customer_id}: {e}")
-        # Log the full traceback for detailed debugging if needed
-        # import traceback
-        # print(traceback.format_exc())
+        ## Log the full traceback for detailed debugging if needed
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        # Clean up the temporary file
+        ## Clean up the temporary file
         if temp_path and os.path.exists(temp_path):
             print(f"Cleaning up temporary file: {temp_path}")
             try:
@@ -327,5 +342,30 @@ async def upload_recording(customer_id: int, file: UploadFile = File(...)):
                 print("Temporary file removed.")
             except Exception as remove_err:
                 print(f"ERROR removing temporary file {temp_path}: {remove_err}")
+
+@app.post("/add-customer")
+async def add_new_customer(customer: CustomerCreate):
+    """
+    EndPoint to add new customer
+    """
+    print("--- POST /add-customer Endpoint Hit ---")
+    print(f"Received new customer data: {customer}")
+
+    due_date_str = customer.due_date.strftime('%Y-%m-%d')
+
+    new_id = db.add_customer(
+        name=customer.name,
+        phone=customer.phone,
+        due_date=due_date_str,
+        loan_amount=customer.loan_amount
+    )
+
+    if new_id is not None:
+        print(f"Successfully added customer with ID: {new_id}")
+        ## Return the ID and a success message
+        return {"status": "success", "message": f"Customer '{customer.name}' added successfully.", "customerId": new_id}
+    else:
+        print("ERROR: Failed to add customer to the database.")
+        raise HTTPException(status_code=500, detail="Failed to add customer to the database.")
 
 print("--- FastAPI App Defined ---")
