@@ -27,7 +27,7 @@ class CustomerCreate(BaseModel):
     loan_amount: float = Field(..., gt=0) # Ensure loan amount is positive
 
 ##  Initialization 
-print("--- Initializing FastAPI App ---")
+print("Initializing FastAPI App.")
 app = FastAPI(title="Loan Collection AI Agent API")
 
 print("Initializing Database...")
@@ -79,7 +79,7 @@ def health():
 @app.get("/all-customers")
 def get_all_customers():
     """Endpoint to retrieve all customers from the database."""
-    print("--- GET /all-customers Endpoint Hit ---")
+    print("GET /all-customers Endpoint Hit.")
     try:
         customers = db.fetch_all_customers()
         print(f"Retrieved {len(customers)} customers.")
@@ -91,7 +91,7 @@ def get_all_customers():
 @app.get("/pending-customers")
 def get_pending_customers():
     """Endpoint to retrieve pending customers from the database."""
-    print("--- GET /pending-customers Endpoint Hit ---")
+    print("GET /pending-customers Endpoint Hit.")
     try:
         customers = db.fetch_due_customers()
         print(f"Retrieved {len(customers)} pending customers.")
@@ -147,7 +147,7 @@ async def handle_vapi_webhook(request_body: dict):
     """
     This is the main webhook that Vapi calls during the live conversation.
     """
-    print("--- POST /webhook/vapi Endpoint Hit ---")
+    print("POST /webhook/vapi Endpoint Hit.")
     # print(f"Received Vapi Webhook Body:\n{json.dumps(request_body, indent=2)}") # Uncomment for very detailed logs
 
     message_type = request_body.get('message', {}).get('type')
@@ -251,7 +251,7 @@ async def upload_recording(customer_id: int, file: UploadFile = File(...)):
     """
     Endpoint to upload the recording... (rest of docstring)
     """
-    print(f"--- POST /upload-recording/{customer_id} Endpoint Hit ---")
+    print(f"POST /upload-recording/{customer_id} Endpoint Hit.")
     
     print(f"Fetching customer data for ID: {customer_id}")
     customer_data = db.fetch_customer_by_id(customer_id) ## Use correct function name
@@ -280,8 +280,8 @@ async def upload_recording(customer_id: int, file: UploadFile = File(...)):
         print(f"Calling transcription_service for file: {temp_path}")
         transcript = transcription_service.transcribe_audio_file(temp_path)
         print(f"Transcription result: '{transcript}'")
-        if "[Transcription failed]" in transcript or "[Google API error]" in transcript:
-            print(f"ERROR: Transcription failed for customer {customer_id}")
+        if transcript.startswith("[") and transcript.endswith("]"):
+            print(f"ERROR: Transcription failed for customer {customer_id}. Detail: {transcript}")
             raise HTTPException(status_code = 500, detail = transcript)
         
         ## Get action plan from agent 
