@@ -120,15 +120,18 @@ async def start_customer_call(customer_id: int):
     print(f"Validating phone number {customer_phone} using twilio lookup.")
     lookup_result = lookup_number(customer_phone)
 
+    print(f"Twilio Lookup Result: {lookup_result}")
+
     if not lookup_result or not lookup_result.get("valid"):
         print(f"ERROR: Phone number {customer_name} is invalid or lookup failed.")
         raise HTTPException(status_code=400, detail=f"Phone number {customer_phone} is not valid.")
     
-    if lookup_result.get("type") != 'mobile':
-        ## If you want to block non-mobile:
-        raise HTTPException(status_code=400, detail=f"Phone number {customer_phone} is not a mobile number.")
+    number_type = lookup_result.get("type", "unknown")
+    if number_type != 'mobile':
+        # Log a warning instead of raising an error
+        print(f"WARNING: Phone number {customer_phone} is not 'mobile' (Type: {number_type}). Proceeding anyway.")
     
-    print(f"Phone number {customer_phone} validated successfully.")
+    print(f"Phone number {customer_phone} validated successfully. (Type: {number_type})")
     
     try:
 
@@ -368,4 +371,4 @@ async def add_new_customer(customer: CustomerCreate):
         print("ERROR: Failed to add customer to the database.")
         raise HTTPException(status_code=500, detail="Failed to add customer to the database.")
 
-print("--- FastAPI App Defined ---")
+print("FastAPI App Defined")
