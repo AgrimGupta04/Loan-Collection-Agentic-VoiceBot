@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage';
 import Header from './components/common/header.jsx';
 import Footer from './components/common/footer.jsx';
 import AllCustomers from './pages/AllCustomers.jsx';
+import AddCustomerForm from './components/core/addCustomer.jsx';
 import PendingCustomers from './pages/PendingCustomers.jsx';
 import ReceivedCustomers from './pages/UpdatedCustomers.jsx';
 import UploadRecording from './pages/UploadRecording.jsx';
@@ -21,6 +22,7 @@ function App() {
         <Route path="/pending" element={<PendingCustomers />} />
         <Route path="/received" element={<ReceivedCustomers />} />
         <Route path="/upload" element={<UploadRecording />} />
+        <Route path="/add-customer" element={<AddCustomerForm />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <ScrollToTop />

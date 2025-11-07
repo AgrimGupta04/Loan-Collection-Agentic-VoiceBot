@@ -60,6 +60,7 @@ function Header() {
     const navItems = [
         { name: 'Home', link: '/' },
         { name: 'All Customers', link: '/all-customers' },
+        { name: 'Add Customer', link: '/add-customer' },
         { name: 'Pending', link: '/pending' },
         { name: 'Upload', link: '/upload' },
         { name: 'Received', link: '/received' },
@@ -153,4 +154,4 @@ function Header() {
 }
 
 export default Header;
-
+                           

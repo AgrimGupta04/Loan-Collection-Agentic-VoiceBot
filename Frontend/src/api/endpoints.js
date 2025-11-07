@@ -12,6 +12,22 @@ const url = import.meta.env.VITE_APP_BACKEND_URL;
         throw error;
     }
 }
+export const addCustomer = async (customerData) => {
+    const response = await fetch(`${url}/add-customer`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(customerData),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to add customer');
+    }
+
+    return await response.json();
+};
 
 export const fetchPendingCustomers = async(endpoint) => {
     try {

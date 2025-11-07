@@ -49,6 +49,7 @@ your-project-folder/
     ├── action_agent.py       # Agent responsible for executing actions (SMS)
     ├── database.py           # Database interaction logic
     ├── dialogue_agent.py     # Core agent logic (intent classification, response generation)
+    ├── sentiment_agent.py    # Sentiment analysis during call responses
     └── services/
         ├── __init__.py
         ├── mcp_service.py        # Twilio API interaction (SMS, Lookup)
