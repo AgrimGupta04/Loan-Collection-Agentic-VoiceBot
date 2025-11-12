@@ -8,10 +8,10 @@ This project implements an intelligent AI voice agent designed to proactively co
 
 ## Features 
 
-* **Real-time Voice Calls:** Initiates outbound calls using Vapi.ai for seamless, low-latency conversations.
-* **Intent Classification:** Uses Groq's fast LLMs to understand user intent (e.g., agrees to pay, refuses, unclear) in real-time.
+* **Real-time Voice Calls:** Initiates outbound calls with low-latency, human-like conversation using Vapi.ai.
+* **Real-time Intent Classification:** Leverages Groq's high-speed LLM inference to understand user intent (e.g., "agrees to pay," "refuses," "needs help") instantly.
 * **Conversation Memory:** Maintains a short-term history for each call to provide context during multi-turn interactions.
-* **Multi-channel Orchestration:** Intelligently decides when to send an SMS payment link via Twilio during a live voice call based on user intent.
+* **Multi agent Orchestration:** Uses a backend agentic (MCP) pipeline to manage dialogue, sentiment, and actions.
 * **Batch Audio Processing:** Includes an endpoint for uploading `.wav` files for testing the transcription and agent logic without making live calls.
 * **Database Integration:** Uses SQLite to store customer data and log call outcomes.
 * **Asynchronous Backend:** Built with FastAPI for high performance and scalability.
@@ -26,8 +26,7 @@ This project implements an intelligent AI voice agent designed to proactively co
 * **SMS/Lookup:** Twilio
 * **Database:** SQLite
 * **STT (for batch):** Google Web Speech API via `SpeechRecognition` library
-* **Deployment:** Railway (using Gunicorn & Uvicorn)
-* **Development:** Uvicorn, Ngrok, python-dotenv
+* **Deployment:** Render
 
 ---
 
@@ -35,41 +34,88 @@ This project implements an intelligent AI voice agent designed to proactively co
 
 ```
 your-project-folder/
-├── .env                      # Your secret keys (DO NOT COMMIT)
-├── .env.example              # Example environment variables
-├── .gitignore                # Files ignored by Git
-├── .railwayignore            # Files ignored by Railway deployment
-├── requirements.txt          # Project dependencies
-├── railway.toml              # Railway deployment configuration
-├── Procfile                  # Alternative deployment config (e.g., for Heroku)
-├── server.py                 # Main FastAPI server (orchestrator)
-├── app.py                    # Optional Streamlit developer dashboard
-└── src/
-    ├── __init__.py
-    ├── action_agent.py       # Agent responsible for executing actions (SMS)
-    ├── database.py           # Database interaction logic
-    ├── dialogue_agent.py     # Core agent logic (intent classification, response generation)
-    ├── sentiment_agent.py    # Sentiment analysis during call responses
-    └── services/
-        ├── __init__.py
-        ├── mcp_service.py        # Twilio API interaction (SMS, Lookup)
-        ├── transcription_service.py  # Audio transcription for file uploads
-        └── vapi_service.py       # Vapi API interaction (starting calls)
+├── Frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── endpoints.js         # Defines frontend API call functions
+│   │   ├── assets/                # Images, icons, etc.
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   │   ├── footer.jsx
+│   │   │   │   └── header.jsx
+│   │   │   ├── core/
+│   │   │   │   ├── addCustomer.jsx
+│   │   │   │   ├── makeCall.jsx
+│   │   │   │   └── uploadFile.jsx
+│   │   │   ├── about.jsx
+│   │   │   ├── heroSection.jsx
+│   │   │   ├── scrollToTop.jsx
+│   │   │   └── pages/               # Page components (e.g., Home, Dashboard)
+│   │   │
+│   │   ├── App.css
+│   │   ├── App.jsx                # Main React app component
+│   │   ├── index.css
+│   │   └── main.jsx               # React entry point
+│   │
+│   ├── .env
+│   ├── .gitignore
+│   ├── eslint.config.js
+|   ├── package-lock.json
+|   ├── pachage.json
+|   ├── vite.config.js
+│   └── index.html
+│
+│
+├── src/
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── mcp_service.py         # Handles Twilio SMS/Lookup
+│   │   ├── transcription_service.py # Handles audio transcription
+│   │   └── vapi_service.py        # Handles Vapi.ai API calls
+│   │
+│   ├── __init__.py
+│   ├── action_agent.py        # Logic for executing actions (e.g., send SMS)
+│   ├── database.py            # Manages SQLite database connection and queries
+│   ├── dialogue_agent.py      # Core LLM logic for intent and response
+│   └── sentiment_agent.py     # Logic for sentiment analysis
+│
+├── demo_output/
+|   ├── user_says_he_will_not_pay.wav
+│   └── user_says_he_will_pay.wav
+│
+├── .gitignore
+├── .railwayignore
+├── procfile                 # Defines processes for PaaS (e.g., Railway, Heroku)
+├── railway.toml             # Railway deployment configuration
+├── README.md
+├── requirements.txt         # Python backend dependencies
+└── server.py                # Main FastAPI application (API endpoints, webhooks)
 ```
 ---
 
 ## Setup & Installation 
+You can try the hosted version here:  
+🔗 **Live Frontend:** [https://loan-collection-agentic-voicebot-frontend.onrender.com](https://loan-collection-agentic-voicebot-frontend.onrender.com)
+
+If you’d like to run this project locally for development or testing, follow the steps below.
 
 1. **Clone the Repository:**
     ```bash
-    git clone <your-repository-url>
-    cd your-project-folder
+    git clone https://github.com/AgrimGupta04/Loan-Collection-Agentic-VoiceBot.git
+    cd Loan-Collection-Agentic-VoiceBot
     ```
 
 2. **Create a Virtual Environment:**
+# Windows
     ```bash
-    python -m venv voice-bot-env
-    source voice-bot-env/bin/activate  # On Windows use `voice-bot-env\Scripts\activate`
+    python -m venv venv
+    .\venv\Scripts\activate
+    ```
+
+# macOS/Linux
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
     ```
 
 3. **Install Dependencies:**
@@ -78,8 +124,20 @@ your-project-folder/
     ```
 
 4. **Set Up Environment Variables:**
-    * Copy the `.env.example` file to `.env`: `cp .env.example .env`
-    * Edit the `.env` file and fill in your actual API keys and credentials for Groq, Twilio, and Vapi.
+    # .env
+
+    # Vapi.ai (for voice calls)
+    VAPI_API_KEY=sk_...
+    VAPI_ASSISTANT_ID=asst_...
+    VAPI_PHONE_NUMBER_ID=pn_...
+
+    # Twilio (for SMS and number lookup)
+    TWILIO_ACCOUNT_SID=AC...
+    TWILIO_AUTH_TOKEN=...
+    TWILIO_PHONE_NUMBER=+1...
+
+    # Groq (for fast LLM inference)
+    GROQ_API_KEY=gsk_...
 
 ---
 
@@ -91,26 +149,44 @@ your-project-folder/
     ```
     The API will be available at `http://127.0.0.1:8000`. You can access the interactive documentation at `http://127.0.0.1:8000/docs`.
 
-2. **Expose Server with Ngrok (for Vapi Webhook):**
-    * Download and install [ngrok](https://ngrok.com/download).
-    * Run ngrok in a **separate terminal**:
-        ```bash
-        ngrok http 8000
-        ```
-    * Copy the `https://<your-unique-id>.ngrok.io` forwarding URL provided by ngrok.
+2. **Fronetend:**
 
-3. **Configure Vapi Assistant:**
+    * # From the root folder 
+        ```bash
+        cd Frontend
+        npm install
+        ```
+
+        Set up environment variables
+
+        Create a file named .env in the /Frontend directory:
+
+        If running locally:
+        ```bash
+        # /Frontend/.env
+        VITE_API_BASE_URL=http://127.0.0.1:8000
+        # /Frontend/.env        ## If your backend is deployed (for example, on Railway or Render):
+        VITE_API_BASE_URL=http://127.0.0.1:8000
+        # Run the frontend app locally
+        npm run dev
+        ```
+
+3. **(Required for Vapi) Expose Your Local Server:**
+
+    * If you’re testing locally, Vapi.ai needs to send webhooks to your local server.
+    * You must expose your port 8000 to the internet using a tool like ngrok.
+
+    '''bash
+    ngrok http 8000
+    ```
+
+
+4. **Configure Vapi Assistant:**
     * Go to your Vapi.ai dashboard.
     * Edit your assistant configuration.
     * Set the **Server URL** to your ngrok forwarding URL + `/webhook/vapi` (e.g., `https://<your-unique-id>.ngrok.io/webhook/vapi`).
     * Paste the **Vapi Prompt** (provided separately) into the assistant's prompt section.
     * Ensure your Vapi Assistant ID is correctly set in your `.env` file (`VAPI_ASSISTANT_ID`).
-
-4. **(Optional) Run Streamlit Dashboard:**
-    If you want to use the developer dashboard:
-    ```bash
-    streamlit run app.py
-    ```
 
 ---
 
@@ -125,16 +201,7 @@ your-project-folder/
 
 ---
 
-## Deployment 
-
-This application is configured for deployment on [Railway](https://railway.app) using the `railway.toml` file. Ensure all necessary environment variables are set in the Railway project settings. The `gunicorn` command in `railway.toml` handles the production serving.
-
----
-
 ## Future Improvements 
 
-* **Sentiment Analysis:** Add a `SentimentAgent` to analyze user tone for more empathetic responses.
-* **Pre-call Check:** Implement a `PreflightAgent` using `mcp_service.lookup_number` to validate phone numbers before dialing.
 * **Payment Integration:** Connect the SMS link to a real (or mock) payment gateway and add a webhook to update the database status to `PAID`.
 * **Enhanced Dialogue:** Improve the `DialogueAgent`'s ability to handle more complex questions and conversational paths.
-* **Frontend UI:** Build a React frontend to replace/enhance the Streamlit dashboard for a more polished user experience.
