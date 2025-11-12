@@ -107,16 +107,14 @@ If you’d like to run this project locally for development or testing, follow t
 
 2. **Create a Virtual Environment:**
 # Windows
-    ```bash
     python -m venv venv
     .\venv\Scripts\activate
-    ```
+    
 
 # macOS/Linux
-    ```bash
     python3 -m venv venv
     source venv/bin/activate
-    ```
+    
 
 3. **Install Dependencies:**
     ```bash
@@ -176,9 +174,8 @@ If you’d like to run this project locally for development or testing, follow t
     * If you’re testing locally, Vapi.ai needs to send webhooks to your local server.
     * You must expose your port 8000 to the internet using a tool like ngrok.
 
-    '''bash
     ngrok http 8000
-    ```
+   
 
 
 4. **Configure Vapi Assistant:**
